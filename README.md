@@ -6,7 +6,7 @@ pipymo is a cli monitoring tool writen in python it uses flask to serve as a pro
 
 pipymo wraps a bunch of shell commands and parses it to monitor:
 
-> you can disable or costumize some options in your config file -> /home/YOUR_USERNAME/.pipymo/config.yaml
+> you can disable or customize some options in your config file -> /home/YOUR_USERNAME/.pipymo/config.yaml
 
 - CPU usage
 - CPU temperature
@@ -56,7 +56,7 @@ if you want enable the http server at start up just enable the service service w
 sudo systemctl enable pipymo && sudo systemctl start pipymo
 ```
 
-# Costumization
+# Customization
 
 In the config folder of this repo there is 2 files that you should place in ~/.pipymo/ (if you used the install script they will be there by now) 
 
