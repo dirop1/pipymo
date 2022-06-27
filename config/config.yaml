@@ -1,0 +1,36 @@
+
+# this is an example file that should be in your home folder like -> /home/username/.pipymo/config.yaml
+
+# just comment out what you dont want to get monitored
+
+cpu:
+ram:
+temp:
+loadavg:
+
+# here you can define a command to run when your server starts or shuts down 
+# one example is too publish to a mqtt broker that the server is starting up or shutting down
+# it will run on the http server start
+# cmds:
+#   start: mosquitto_pub -h 192.168.1.32 -p 1883 -u my_username -P mysecretpass -t servers/HOSTNAME -m "{\"state\":\"ON\"}" --insecure'
+#   stop: mosquitto_pub -h 192.168.1.32 -p 1883 -u my_username -P mysecretpass -t servers/HOSTNAME -m "{\"state\":\"OFF\"}" --insecure'
+cmds:
+  start: /usr/bin/echo "starting pipymo"
+  stop: /usr/bin/echo "ending pipymo"
+
+http_config:
+  port: 9009
+  # auth_headers kinda works but dont mind it , we'll not be using https anyway 
+  # auth_header: "Bearer: 8exVH8cwVP7o8XXxKLRaRHo8S8CwH7Ee" 
+  paths:
+    prometheus: "/metrics"
+    json: "/json"
+
+# the mount points partitions you want to monitor
+disks:
+  - "/"
+
+# the network devices you want to monitor
+rxtx:
+  - "eth0"
+  - "ens18"

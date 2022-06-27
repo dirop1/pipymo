@@ -1,0 +1,11 @@
+[Unit]
+Description=Service for running pipymo flask http server
+After=network.target
+
+[Service]
+User=uilsone
+ExecStart=/usr/bin/echo "pipymo started" && /usr/bin/python3 /usr/local/bin/pipymo serve
+ExecStop=/usr/bin/echo "pipymo stopped"
+
+[Install]
+WantedBy=multi-user.target
