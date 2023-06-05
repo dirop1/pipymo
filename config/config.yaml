@@ -8,7 +8,7 @@ ram:
 temp:
 loadavg:
 
-# here you can define a command to run when your server starts or shuts down 
+# here you can define a command to run when pipymo server starts or shuts down 
 # one example is too publish to a mqtt broker that the server is starting up or shutting down
 # it will run on the http server start
 # cmds:
@@ -20,12 +20,21 @@ cmds:
 
 http_config:
   port: 9009
-  # auth_headers kinda works but dont mind it , we'll not be using https anyway 
-  # auth_header: "Bearer: 8exVH8cwVP7o8XXxKLRaRHo8S8CwH7Ee" 
+  
   paths:
     prometheus: "/metrics"
     json: "/json"
 
+  # auth_headers kinda works but dont mind it , we'll not be using https anyway 
+  # auth_header: "Bearer: 8exVH8cwVP7o8XXxKLRaRHo8S8CwH7Ee" 
+  
+  # Example of a comand that wil be running if you uncomment this line
+  # and go to "/exec-cmd/saymydist" 
+  # cmds:
+  #   saymydist: "uname -a"
+
+
+  
 # the mount points partitions you want to monitor
 disks:
   - "/"
