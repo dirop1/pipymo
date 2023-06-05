@@ -74,16 +74,13 @@ app = Flask(__name__)
 def metrics():    
     if checkHeaders():    
         return Response(prometheusExporter(updateInfo()),mimetype='text/plain')
-    else:
-        Response.status_code = 401
-        return Response("Unauthorized", status=401, mimetype='text/plain')
+    return Response("Unauthorized", status=401, mimetype='text/plain')
 
 @app.route(config["http_config"]["paths"]["json"])
 def rjson(): 
     if checkHeaders():       
         return Response(json.dumps(updateInfo()), mimetype='application/json')
-    else:
-        return Response("Unauthorized", status=401, mimetype='text/plain')
+    return Response("Unauthorized", status=401, mimetype='text/plain')
 
 #function to run comands on shell that are declared on config file
 @app.route("/exec-cmd/<cmd>")
