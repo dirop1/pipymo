@@ -56,6 +56,15 @@ if you want enable the http server at start up just enable the service service w
 sudo systemctl enable pipymo && sudo systemctl start pipymo
 ```
 
+# executing shell comands over http
+
+In the config file you can now enable the execution of commands in your system.
+
+For that you need to:
+- define it in `config.yaml` (check the example config file) 
+- restart pipymo
+- do an http get for http://[yourip]:[yourport]/exec-cmd/NAME_OF_COMAND 
+
 # Customization
 
 In the config folder of this repo there is 2 files that you should place in ~/.pipymo/ (if you used the install script they will be there by now) 

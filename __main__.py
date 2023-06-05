@@ -5,10 +5,13 @@ from flask import Flask, Response, request
 import json 
 from exporter_functions import *
 import socket
-
+import sys
+import subprocess
 
 authorization_header = None
 hostname = socket.gethostname()
+
+
 
 def echoHelp():
     print(hostname)
@@ -64,7 +67,6 @@ def checkHeaders():
     print(authorization_header)
     if authorization_header != None:
         return config["http_config"]["auth_header"] == request.headers.get('Authorization')
-    print("skipped")
     return True
 
 app = Flask(__name__)
@@ -72,18 +74,37 @@ app = Flask(__name__)
 def metrics():    
     if checkHeaders():    
         return Response(prometheusExporter(updateInfo()),mimetype='text/plain')
-    else:
-        Response.status_code = 401
-        return Response("Unauthorized", status=401, mimetype='text/plain')
+    return Response("Unauthorized", status=401, mimetype='text/plain')
 
 @app.route(config["http_config"]["paths"]["json"])
 def rjson(): 
     if checkHeaders():       
         return Response(json.dumps(updateInfo()), mimetype='application/json')
+    return Response("Unauthorized", status=401, mimetype='text/plain')
+
+#function to run comands on shell that are declared on config file
+@app.route("/exec-cmd/<cmd>")
+def execCmds(cmd): 
+    if checkHeaders():   
+        http_conf = config.get("http_config") 
+        if http_conf.get("cmds") and http_conf.get("cmds").get(cmd):    
+            try:                
+                result = subprocess.run(http_conf.get("cmds").get(cmd).split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                return Response(json.dumps({
+                                'output': result.stdout.decode('utf-8'),
+                                "error": None
+                            }), status=200, mimetype='application/json')
+            except:
+                return Response(json.dumps({
+                                'output': None,
+                                "error": "That was an error"
+                            }), status=500, mimetype='application/json')
+        else:
+            return Response("Not found", status=404, mimetype='text/plain')
     else:
         return Response("Unauthorized", status=401, mimetype='text/plain')
 
 if __name__ == '__main__' and checkConfigExist('http_config'):
     loadCmds()
-    server = app.run(host='0.0.0.0', port=config['http_config']['port'],debug=False)
+    server = app.run(host='0.0.0.0', port=config['http_config']['port'], debug=False)
     exiting()
