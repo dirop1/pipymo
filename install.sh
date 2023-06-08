@@ -4,6 +4,9 @@ CONFIG_FOLDER="/home/$USER/.pipymo"
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
+# set the current user on service file 
+sed -i -e "s/REPLACE_THIS_USERNAME/$USER/g" $SCRIPT_DIR/pipymo.service
+
 if [ -d "$CONFIG_FOLDER" ]; then
     echo ".pipymo folder exists, skipping copy of defaults..." 
 else
