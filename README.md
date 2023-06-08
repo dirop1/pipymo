@@ -61,11 +61,6 @@ if you want enable the http server at start up just enable the service service w
 sudo systemctl enable pipymo && sudo systemctl start pipymo
 ```
 
-if you want enable the http server at start up just enable the service service with:
-
-```shell
-sudo systemctl enable pipymo && sudo systemctl start pipymo
-```
 
 >The configuration used is now in '~/.pipymo/config.yaml' you can edit it and restart the service
 
@@ -96,3 +91,48 @@ chmod +x ./uninstall.sh && ./uninstall.sh
 ```
 
 Please delete manually the pipymo folder and the configuration on ~/.pipymo/*
+
+
+
+# Output
+
+Showing in json but the prometheus is similar just in prom format
+
+```json
+{
+  "cores": 4, 
+  "cputemp": 56,
+  "load1": 1.35,
+  "load5": 1.52,
+  "load15": 1.47,
+  "load_pcent": 33.75,
+  "running_processes": 1,
+  "total_processes": 1325,
+  "memory_max": 3973,
+  "memory_used": 3283,
+  "swap_max": 2147,
+  "swap_used": 458,
+  "rxtx": [ // total received and transmited in KB
+    {
+      "device": "eth0",
+      "rx": 224485,
+      "tx": 42935
+    }
+  ],
+  "rxtx_s": [ // only available on server mode not in cli
+    {
+      "device": "eth0", // total received and transmited in KB per second since last call
+      "rx_s": 135,
+      "tx_s": 11
+    }
+  ],
+  "disks": [
+    { // stats in MB
+      "mountpoint": "/",
+      "used": 42795, 
+      "avail": 187430,
+      "pcent": 19
+    }
+  ]
+}
+```
