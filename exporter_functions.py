@@ -81,14 +81,16 @@ user_config_file_path = '/home/'+ cur_user +'/.pipymo/config.yaml'
 
 config_file_path = ""
 if not os.path.exists(user_config_file_path):
-    print(f"{bcolors.FAIL}Using the default config file create one in ~/.pipymo/config.yaml to use your own...{bcolors.ENDC}")
+    print(f"{bcolors.FAIL} Using the default config file create one in ~/.pipymo/config.yaml to use your own...{bcolors.ENDC}")
     config_file_path = default_config_file_path
 else:
     config_file_path = user_config_file_path
 
+
+
 with open( config_file_path ) as config_file:
     config = yaml.load(config_file, Loader=yaml.FullLoader)
-    
+    print("Loaded config file " + config_file_path)
 
 
 def loadDisksInfo():
@@ -146,8 +148,8 @@ def updateInfo():
             dev_stats = getNetworkRXTX(netd)
             result["rxtx"].append({
                 "device" : netd,
-                "rx" : tryInt(tryInt(dev_stats[0]) / 1024 / 1024),
-                "tx" : tryInt(tryInt(dev_stats[1])/ 1024 / 1024)
+                "rx" : tryInt(tryInt(dev_stats[0]) / 1024), # in kilobytes
+                "tx" : tryInt(tryInt(dev_stats[1]) / 1024) # in kilobytes
             })
 
     if checkConfigExist("disks"):

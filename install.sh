@@ -16,7 +16,7 @@ fi
 
 if [ -f "/usr/local/bin/pipymo" ]; then
     echo ".pipymo was previously installed removing /usr/local/bin/pipymo" 
-    echo "if you are running it as a script please restart the flask server using:"
+    echo "if you are running it as a service please restart the flask server using:"
     echo "-> sudo systemctl restart pipymo"
     sudo rm -f /usr/local/bin/pipymo
 fi
@@ -30,6 +30,7 @@ sudo cp "$SCRIPT_DIR/pipymo.service" "/etc/systemd/system/"
 
 pip install -r "$SCRIPT_DIR/requirements.txt"
 
+sed -i -e "s/$USER/REPLACE_THIS_USERNAME/g" $SCRIPT_DIR/pipymo.service
 
 echo "if you want enable the http service with:"
 echo "sudo systemctl enable pipymo && sudo systemctl start pipymo"
