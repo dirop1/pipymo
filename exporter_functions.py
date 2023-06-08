@@ -1,6 +1,7 @@
 import yaml
 import subprocess
 import os
+import time
 
 class bcolors:
     HEADER = '\033[95m'
@@ -18,6 +19,8 @@ config = None
 #only available for raspberry pi ATM
 cpu_temp_available = True
 
+mean_metrics = {"rxtx": []}
+cached_result_cores = 0
 
 def getCliOutput(cmd):
     output = subprocess.check_output(cmd, shell=True).decode("utf-8") 
@@ -116,8 +119,18 @@ def tryInt(maybe_number):
 
 
 def updateInfo():
+    global mean_metrics,cached_result_cores
+    last_checked = 0
+    if mean_metrics.get("lc"):
+        last_checked = mean_metrics.get("lc")
+
     result = {}
-    result['cores'] = tryInt(getCliOutput("grep -c ^processor /proc/cpuinfo")[0])
+    if not cached_result_cores:
+        cached_result_cores = tryInt(getCliOutput("grep -c ^processor /proc/cpuinfo")[0])
+    
+    result['cores'] = cached_result_cores
+
+    	
     if checkConfigExist("cpu"):
         if cpu_temp_available:
             result['cputemp'] = tryInt(tryInt(getCliOutput("cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null")[0])/ 1000)
@@ -129,7 +142,6 @@ def updateInfo():
         result['load1'] = float(loadavg[0])
         result['load5'] = float(loadavg[1])
         result['load15'] =float(loadavg[2])
-        print(loadavg[0])
         result['load_pcent'] = result['load1'] / result['cores'] * 100
         proc = loadavg[3].split("/")
         result['running_processes'] = tryInt(proc[0])
@@ -145,15 +157,34 @@ def updateInfo():
     if checkConfigExist("rxtx"):
         result["rxtx"] = []
         for index, netd in enumerate(available_net_devices):
+
             dev_stats = getNetworkRXTX(netd)
-            result["rxtx"].append({
+            new_stats_device = {
                 "device" : netd,
                 "rx" : tryInt(tryInt(dev_stats[0]) / 1024), # in kilobytes
                 "tx" : tryInt(tryInt(dev_stats[1]) / 1024) # in kilobytes
-            })
+            }
+            
+            # if we have a last read we can compute the diference beteen the teime range
+            if last_checked:
+                result["rxtx_s"] = []
+                time_dif_seconds = time.time() - last_checked
+                new_0 = (new_stats_device["rx"] - mean_metrics[netd]["rx"]) / time_dif_seconds
+                new_1 = (new_stats_device["tx"] - mean_metrics[netd]["tx"]) / time_dif_seconds
+                result["rxtx_s"].append({
+                    "device" : netd,
+                    "rx_s" : tryInt(new_0), # in kilobytes
+                    "tx_s" : tryInt(new_1) # in kilobytes
+                })
+                
+            mean_metrics[netd] = new_stats_device
+            result["rxtx"].append(new_stats_device)
 
     if checkConfigExist("disks"):
         result['disks'] = loadDisksInfo()
+
+    mean_metrics["lc"] = time.time()
+
     return result
 
 
@@ -162,7 +193,7 @@ def updateInfo():
 def prometheusExporter(info):
     result = "#HELP pipymo\n"
     for key in info:
-        if key != "disks" and key != "rxtx":
+        if key != "disks" and key != "rxtx" and key != "rxtx_s":
             scientific_notation = "{:.2e}".format(info[key])
             result = result + f"{key} {scientific_notation}"+"\n" 
     if "disks" in info:
@@ -171,12 +202,13 @@ def prometheusExporter(info):
                 if key != "mountpoint":
                     scientific_notation = "{:.2e}".format(disk[key])
                     result = result + "disk_" + key+ "{mountpoint=\""+ disk["mountpoint"] + "\"} "+scientific_notation+"\n" 
-    if "rxtx" in info:
-        for netd in info['rxtx']:
-            for key in netd:
-                if key != "device":
-                    scientific_notation = "{:.2e}".format(netd[key])
-                    result = result + "net_device_" + key+ "{device=\""+ netd["device"] + "\"} "+scientific_notation+"\n" 
+    for net_rxrtx in ["rxtx", "rxtx_s"]:
+        if net_rxrtx in info:
+            for netd in info[net_rxrtx]:
+                for key in netd:
+                    if key != "device":
+                        scientific_notation = "{:.2e}".format(netd[key])
+                        result = result + "net_device_" + key+ "{device=\""+ netd["device"] + "\"} "+scientific_notation+"\n" 
     return result
 
 def echoCliOutput(info, hostname):
