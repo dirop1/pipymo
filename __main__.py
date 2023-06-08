@@ -7,6 +7,12 @@ from exporter_functions import *
 import socket
 import sys
 import subprocess
+import logging
+
+# setting the log level to error to preserve the sd card writes
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+
 
 authorization_header = None
 hostname = socket.gethostname()

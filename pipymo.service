@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 User=REPLACE_THIS_USERNAME
-ExecStart=/usr/bin/echo "pipymo started" && /usr/bin/python3 /usr/local/bin/pipymo serve
+ExecStart=/usr/bin/python3 /usr/local/bin/pipymo serve
 ExecStop=/usr/bin/echo "pipymo stopped"
 
 [Install]
