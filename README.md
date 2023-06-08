@@ -39,10 +39,15 @@ python3 . echo
 
 ## Instalation and auto start up
 
+In the working directory:
+
 ```shell
-chmod +x install.sh
-sudo ./install.sh
+chmod +x ./install.sh && ./install.sh
 ```
+
+> you will be prompted to input sudo password so we can write to the services path
+
+
 the pipymo service will be installed by now
 you can now run commands like:
 
@@ -55,6 +60,14 @@ if you want enable the http server at start up just enable the service service w
 ```shell
 sudo systemctl enable pipymo && sudo systemctl start pipymo
 ```
+
+if you want enable the http server at start up just enable the service service with:
+
+```shell
+sudo systemctl enable pipymo && sudo systemctl start pipymo
+```
+
+>The configuration used is now in '~/.pipymo/config.yaml' you can edit it and restart the service
 
 # executing shell comands over http
 
@@ -75,3 +88,11 @@ Just edit the files to suite your needs.
 - The ping_hosts.txt is just a line-separated list of hosts that will be ping'd when you run the "pipymo ping" command
 
 > * it should work too in debian based distros
+
+## Unninstalling
+
+```shell
+chmod +x ./uninstall.sh && ./uninstall.sh
+```
+
+Please delete manually the pipymo folder and the configuration on ~/.pipymo/*

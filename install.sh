@@ -33,4 +33,4 @@ pip install -r "$SCRIPT_DIR/requirements.txt"
 
 echo "if you want enable the http service with:"
 echo "sudo systemctl enable pipymo && sudo systemctl start pipymo"
-echo "Done! use it with -> pipymo echo"
+echo "Done! Check it with -> pipymo echo"
