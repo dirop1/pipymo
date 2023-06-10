@@ -201,13 +201,13 @@ def convert_to_kb(value_str):
     unit = "".join(re.findall(r'[a-zA-Z]+', value_str)).lower()
     value = float("".join(re.findall(r'[\d.]+', value_str)))
 
-    if unit == 'mib':
+    if unit == 'mib' or unit == 'mb':
         kb_value = value * 1024
-    elif unit == 'gib':
+    elif unit == 'gib' or unit == 'gb':
         kb_value = value * 1024 * 1024
-    elif unit == 'tib':
+    elif unit == 'tib' or unit == 'tb':
         kb_value = value * 1024 * 1024 * 1024
-    elif unit == 'kb':
+    elif unit == 'kb' or unit == 'kib':
         kb_value = value
     elif unit == 'b': # its bytes
         kb_value = value / 1024
@@ -283,7 +283,7 @@ def prometheusExporter(info):
 def echoCliOutput(info, hostname):
     print(f"*******************  {bcolors.OKBLUE}pipymo - {hostname}{bcolors.ENDC}  *******************") 
     for key in info:
-        if key != "disks" and key != "rxtx":
+        if key != "disks" and key != "rxtx" and key != "docker":
             print(f"{bcolors.OKCYAN}{key}: {bcolors.WARNING}{info[key]}{bcolors.ENDC}") 
     if "disks" in info:
         print(f"{bcolors.UNDERLINE}disks:{bcolors.ENDC}")
@@ -305,7 +305,7 @@ def echoCliOutput(info, hostname):
                     print("    " + key + f": {bcolors.WARNING}"+ str(netd[key]) +f"{bcolors.ENDC}")
     
     if info.get("docker") is not None:
-        print(f"{bcolors.UNDERLINE}docker_containers:{bcolors.ENDC}")
+        print(f"{bcolors.UNDERLINE}docker:{bcolors.ENDC}")
         for ci in info['docker']:
             print(f"{bcolors.OKCYAN}  " + ci["Name"] +f":{bcolors.ENDC}")
             for k in ci:
