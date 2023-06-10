@@ -2,6 +2,9 @@ import yaml
 import subprocess
 import os
 import time
+import json
+import re
+
 
 class bcolors:
     HEADER = '\033[95m'
@@ -183,17 +186,76 @@ def updateInfo():
     if checkConfigExist("disks"):
         result['disks'] = loadDisksInfo()
 
+    if checkConfigExist("docker"):
+        result["docker"] = getDockerStats()
+
+
+    # save metrics for diff calc next time
     mean_metrics["lc"] = time.time()
 
     return result
 
+
+def convert_to_kb(value_str):
+
+    unit = "".join(re.findall(r'[a-zA-Z]+', value_str)).lower()
+    value = float("".join(re.findall(r'[\d.]+', value_str)))
+
+    if unit == 'mib':
+        kb_value = value * 1024
+    elif unit == 'gib':
+        kb_value = value * 1024 * 1024
+    elif unit == 'tib':
+        kb_value = value * 1024 * 1024 * 1024
+    elif unit == 'kb':
+        kb_value = value
+    elif unit == 'b': # its bytes
+        kb_value = value / 1024
+    else:
+        raise ValueError(f"Invalid unit: {unit}. Please use 'TiB','MiB', 'GiB', 'kB' or 'B'.")
+
+    return kb_value
+
+def getDockerStats():
+    try:
+
+        cmd = 'docker stats --no-stream --format "{{ json . }}"'
+        output = getCliOutput(cmd)
+        str_json_array = "[" 
+
+        for i in range(len(output)):
+            if output[i].rstrip() != "":
+                str_json_array += output[i]
+            if i == len(output) -1:
+                str_json_array += "]"
+            if i < len(output) -2:
+                str_json_array += ","
+
+        output_json_array = json.loads(str_json_array)
+
+        # parse the ouput
+        for container in output_json_array:
+            container["BlockIn"] = convert_to_kb(container["BlockIO"].split(" / ")[0])
+            container["BlockOut"] = convert_to_kb(container["BlockIO"].split(" / ")[1])
+            container["NetIn"] = convert_to_kb(container["NetIO"].split(" / ")[0])
+            container["NetOut"] = convert_to_kb(container["NetIO"].split(" / ")[1])
+            container["MemoryUsed"] = convert_to_kb(container["MemUsage"].split(" / ")[0])
+            container["CPUPerc"] = float(container["CPUPerc"].replace('%',''))
+            container["MemPerc"] = float(container["MemPerc"].replace('%',''))
+            del container["BlockIO"]; del container["MemUsage"]; del container["NetIO"]; del container["ID"]; del container["PIDs"]; del container["Container"];
+        return output_json_array
+
+    except:
+        print("Could not obtain docker stats check that docker is installed and that the user can run docker comands.")
+        print("Or remove docker from the config file")
+        return None
 
 
 
 def prometheusExporter(info):
     result = "#HELP pipymo\n"
     for key in info:
-        if key != "disks" and key != "rxtx" and key != "rxtx_s":
+        if key != "disks" and key != "rxtx" and key != "rxtx_s" and key != "docker":
             scientific_notation = "{:.2e}".format(info[key])
             result = result + f"{key} {scientific_notation}"+"\n" 
     if "disks" in info:
@@ -202,6 +264,13 @@ def prometheusExporter(info):
                 if key != "mountpoint":
                     scientific_notation = "{:.2e}".format(disk[key])
                     result = result + "disk_" + key+ "{mountpoint=\""+ disk["mountpoint"] + "\"} "+scientific_notation+"\n" 
+    if "docker" in info and info.get("docker") is not None:
+        for container in info['docker']:
+            for cs in container:
+                if cs != "Name":
+                    scientific_notation = "{:.2e}".format(container[cs])
+                    result = result + 'container_stats_'+ cs +'{container_name="'+ container.get("Name") +'"}'+scientific_notation+"\n" 
+
     for net_rxrtx in ["rxtx", "rxtx_s"]:
         if net_rxrtx in info:
             for netd in info[net_rxrtx]:
@@ -233,4 +302,13 @@ def echoCliOutput(info, hostname):
             print(f"{bcolors.OKCYAN}  device: " + netd["device"] +f"{bcolors.ENDC}")
             for key in netd:
                 if key != "device":
-                    print("    " + key + f": {bcolors.WARNING}"+ str(netd[key]) +f"{bcolors.ENDC}") 
+                    print("    " + key + f": {bcolors.WARNING}"+ str(netd[key]) +f"{bcolors.ENDC}")
+    
+    if info.get("docker") is not None:
+        print(f"{bcolors.UNDERLINE}docker_containers:{bcolors.ENDC}")
+        for ci in info['docker']:
+            print(f"{bcolors.OKCYAN}  " + ci["Name"] +f":{bcolors.ENDC}")
+            for k in ci:
+                if k != "Name":
+                    print(f"{bcolors.OKCYAN}    {k}: {ci.get(k)} {bcolors.ENDC}")
+

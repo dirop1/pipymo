@@ -49,7 +49,7 @@ if (len(sys.argv) > 1):
         startUpExporter()
         if checkConfigExist("http_config"):
             try:
-                if config["http_config"]["auth_header"]:
+                if config["http_config"].get("auth_header"):
                     authorization_header = config["http_config"]["auth_header"]
                     print(config["http_config"]["auth_header"])
             except:

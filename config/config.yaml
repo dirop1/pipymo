@@ -8,6 +8,10 @@ ram:
 temp:
 loadavg:
 
+# if you want docker container stats uncomment the following line
+# docker:
+
+
 # here you can define a command to run when pipymo server starts or shuts down 
 # one example is too publish to a mqtt broker that the server is starting up or shutting down
 # it will run on the http server start
