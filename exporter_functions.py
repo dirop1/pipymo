@@ -242,7 +242,7 @@ def getDockerStats():
             container["MemoryUsed"] = convert_to_kb(container["MemUsage"].split(" / ")[0])
             container["CPUPerc"] = float(container["CPUPerc"].replace('%',''))
             container["MemPerc"] = float(container["MemPerc"].replace('%',''))
-            del container["BlockIO"]; del container["MemUsage"]; del container["NetIO"]; del container["ID"]; del container["PIDs"]; del container["Container"];
+            del container["BlockIO"]; del container["MemUsage"]; del container["NetIO"]; del container["PIDs"]; del container["Container"];
         return output_json_array
 
     except:
@@ -259,25 +259,32 @@ def prometheusExporter(info):
             scientific_notation = "{:.2e}".format(info[key])
             result = result + f"{key} {scientific_notation}"+"\n" 
     if "disks" in info:
+        result = result + "# disks stats\n"
         for disk in info['disks']:
             for key in disk:
                 if key != "mountpoint":
                     scientific_notation = "{:.2e}".format(disk[key])
                     result = result + "disk_" + key+ "{mountpoint=\""+ disk["mountpoint"] + "\"} "+scientific_notation+"\n" 
-    if "docker" in info and info.get("docker") is not None:
-        for container in info['docker']:
-            for cs in container:
-                if cs != "Name":
-                    scientific_notation = "{:.2e}".format(container[cs])
-                    result = result + 'container_stats_'+ cs +'{container_name="'+ container.get("Name") +'"}'+scientific_notation+"\n" 
-
-    for net_rxrtx in ["rxtx", "rxtx_s"]:
+    
+    
+    for net_rxrtx in ["rxtx", "rxtx_s"]:        
         if net_rxrtx in info:
+            result = result + "# network stats in kb - " + net_rxrtx + "\n"
             for netd in info[net_rxrtx]:
                 for key in netd:
                     if key != "device":
                         scientific_notation = "{:.2e}".format(netd[key])
                         result = result + "net_device_" + key+ "{device=\""+ netd["device"] + "\"} "+scientific_notation+"\n" 
+
+    if "docker" in info and info.get("docker") is not None:
+        result = result + "# docker stats\n"
+        for container in info['docker']:
+            result = result + f"# stats for {container.get('ID')} container\n"
+            for cs in container:
+                if cs != "Name" and cs != "ID":
+                    scientific_notation = "{:.2e}".format(container[cs])
+                    result = result + 'container_stats_'+ cs +'{container_name="'+ container.get("Name")+', id={"' + container.get("ID")+ '"} '+scientific_notation+"\n" 
+
     return result
 
 def echoCliOutput(info, hostname):
