@@ -283,7 +283,7 @@ def prometheusExporter(info):
             for cs in container:
                 if cs != "Name" and cs != "ID":
                     scientific_notation = "{:.2e}".format(container[cs])
-                    result = result + 'container_stats_'+ cs +'{container_name="'+ container.get("Name")+', id={"' + container.get("ID")+ '"} '+scientific_notation+"\n" 
+                    result = result + 'container_stats_'+ cs +'{container_name="'+ container.get("Name")+'", id="' + container.get("ID")+ '"} '+scientific_notation+"\n" 
 
     return result
 
