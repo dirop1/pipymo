@@ -136,3 +136,13 @@ Showing in json but the prometheus is similar just in prom format
   ]
 }
 ```
+
+
+## Grafana 
+
+![Pipymo grafana dashboard](imgs/pipymo_grafana_dashboard.png "grafana dashboard using prometheus pipymo expporter")
+
+
+> The id of the dashboard is 18959
+
+[Get it at grafana.com](https://grafana.com/grafana/dashboards/?search=pipymo)
